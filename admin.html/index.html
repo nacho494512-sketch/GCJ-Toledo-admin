@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Iglesia GCJ Toledo</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-color: #f8fafc;
+            --white: #ffffff;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg-color); color: #1e293b; }
+        header { background-color: var(--primary); color: var(--white); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        main { padding: 2rem; max-width: 900px; margin: auto; }
+        .card { background: var(--white); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        input, textarea, button { padding: 10px; margin-top: 5px; margin-bottom: 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box; }
+        input, textarea { width: 100%; }
+        button { background-color: var(--success); color: var(--white); border: none; cursor: pointer; font-weight: 600; width: 100%; }
+        button:hover { opacity: 0.9; }
+        .btn-danger { background-color: var(--danger); padding: 6px 12px; font-size: 0.85rem; width: auto; margin: 0; }
+        .btn-warning { background-color: var(--warning); color: white; padding: 6px 12px; font-size: 0.85rem; width: auto; margin: 0; }
+        .hidden { display: none; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px 15px; margin-bottom: 10px; border-radius: 6px; gap: 10px; }
+        .admin-item div { word-break: break-all; flex-grow: 1; }
+        .badge { background: #dbeafe; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Panel Administrativo - GCJ Toledo</h2>
+        <button id="btnLogout" class="hidden btn-danger" style="width: auto;">Cerrar Sesión</button>
+    </header>
+
+    <main>
+        <!-- LOGIN -->
+        <div id="seccionLogin" class="card">
+            <h3>Iniciar Sesión</h3>
+            <form id="formLogin">
+                <label>Correo Electrónico:</label>
+                <input type="email" id="emailAdmin" required>
+                <label>Contraseña:</label>
+                <input type="password" id="passwordAdmin" required>
+                <button type="submit">Ingresar al Panel</button>
+            </form>
+        </div>
+
+        <!-- PANEL PRIVADO -->
+        <div id="seccionPanel" class="hidden">
+            
+            <!-- Horarios -->
+            <div class="card">
+                <h3>⚙️ Gestión de Horarios</h3>
+                <form id="formHorario">
+                    <label>Nuevo Horario:</label>
+                    <input type="text" id="nuevoHorario" placeholder="Ej: Domingos 19:30 hs" required>
+                    <button type="submit">Guardar Horario</button>
+                </form>
+                <div id="listaHorariosAdmin" style="margin-top:15px;">Cargando...</div>
+            </div>
+
+            <!-- Eventos -->
+            <div class="card">
+                <h3>📢 Publicar Evento</h3>
+                <form id="formEvento">
+                    <label>Título:</label>
+                    <input type="text" id="tituloEvento" placeholder="Título" required>
+                    <label>Descripción:</label>
+                    <textarea id="descEvento" rows="3" placeholder="Detalles..." required></textarea>
+                    <button type="submit">Publicar Evento</button>
+                </form>
+                <div id="listaEventosAdmin" style="margin-top:15px;">Cargando...</div>
+            </div>
+
+            <!-- Integrantes -->
+            <div class="card">
+                <h3>👥 Gestionar Equipo</h3>
+                <form id="formLider">
+                    <label>Nombre:</label>
+                    <input type="text" id="nombreLider" placeholder="Nombre" required>
+                    <label>Área:</label>
+                    <input type="text" id="areaLider" placeholder="Área" required>
+                    <label>Foto URL:</label>
+                    <input type="text" id="fotoLider" placeholder="https://...">
+                    <button type="submit">Guardar Integrante</button>
+                </form>
+                <div id="listaLideresAdmin" style="margin-top:15px;">Cargando...</div>
+            </div>
+
+            <!-- Galería de Fotos (NUEVO) -->
+            <div class="card">
+                <h3>📸 Subir Foto a la Galería</h3>
+                <form id="formGaleria">
+                    <label>Título de la Foto:</label>
+                    <input type="text" id="tituloFoto" placeholder="Ej: Bautismos / Reunión de Jóvenes" required>
+                    <label>Enlace de la Imagen (URL):</label>
+                    <input type="text" id="urlFoto" placeholder="https://..." required>
+                    <button type="submit">Agregar a Galería</button>
+                </form>
+                <div id="listaGaleriaAdmin" style="margin-top:15px;">Cargando...</div>
+            </div>
+
+            <!-- Peticiones de Oración con Contador (NUEVO) -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>🙏 Peticiones de Oración</h3>
+                    <span id="contadorPeticiones" class="badge">Total: 0</span>
+                </div>
+                <div id="listaPeticiones" style="margin-top: 15px;">Cargando peticiones...</div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkVIF5VpR46sE1pIX8Mn91Uh8ogtal1A",
+            authDomain: "gcj-toledo.firebaseapp.com",
+            projectId: "gcj-toledo",
+            storageBucket: "gcj-toledo.firebasestorage.app",
+            messagingSenderId: "722197861134",
+            appId: "1:722197861134:web:bb2ad5dab3f5b2beb7bd5f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        document.getElementById("formLogin").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById("emailAdmin").value, document.getElementById("passwordAdmin").value);
+            } catch (error) { alert("Error al iniciar sesión."); }
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("seccionLogin").classList.add("hidden");
+                document.getElementById("seccionPanel").classList.remove("hidden");
+                document.getElementById("btnLogout").classList.remove("hidden");
+                cargarTodoAdmin();
+            } else {
+                document.getElementById("seccionLogin").classList.remove("hidden");
+                document.getElementById("seccionPanel").classList.add("hidden");
+                document.getElementById("btnLogout").classList.add("hidden");
+            }
+        });
+
+        document.getElementById("btnLogout").addEventListener("click", () => signOut(auth));
+
+        function cargarTodoAdmin() {
+            cargarHorariosAdmin();
+            cargarEventosAdmin();
+            cargarLideresAdmin();
+            cargarGaleriaAdmin();
+            cargarPeticionesAdmin();
+        }
+
+        async function cargarHorariosAdmin() {
+            const cont = document.getElementById("listaHorariosAdmin");
+            const snap = await getDocs(collection(db, "horarios_cultos"));
+            cont.innerHTML = snap.empty ? "<p>No hay horarios.</p>" : "";
+            snap.forEach(d => {
+                cont.innerHTML += `<div class="admin-item"><div>⛪ ${d.data().horarios}</div><button class="btn-danger" onclick="eliminarDoc('horarios_cultos', '${d.id}')">Eliminar</button></div>`;
+            });
+        }
+
+        async function cargarEventosAdmin() {
+            const cont = document.getElementById("listaEventosAdmin");
+            const snap = await getDocs(collection(db, "publicaciones_eventos"));
+            cont.innerHTML = snap.empty ? "<p>No hay eventos.</p>" : "";
+            snap.forEach(d => {
+                cont.innerHTML += `<div class="admin-item"><div><strong>${d.data().titulo}</strong></div><button class="btn-danger" onclick="eliminarDoc('publicaciones_eventos', '${d.id}')">Eliminar</button></div>`;
+            });
+        }
+
+        async function cargarLideresAdmin() {
+            const cont = document.getElementById("listaLideresAdmin");
+            const snap = await getDocs(collection(db, "ministerios_lideres"));
+            cont.innerHTML = snap.empty ? "<p>No hay integrantes.</p>" : "";
+            snap.forEach(d => {
+                cont.innerHTML += `<div class="admin-item"><div><strong>${d.data().nombre}</strong> (${d.data().area})</div><button class="btn-danger" onclick="eliminarDoc('ministerios_lideres', '${d.id}')">Eliminar</button></div>`;
+            });
+        }
+
+        async function cargarGaleriaAdmin() {
+            const cont = document.getElementById("listaGaleriaAdmin");
+            const snap = await getDocs(collection(db, "galeria_fotos"));
+            cont.innerHTML = snap.empty ? "<p>No hay fotos en galería.</p>" : "";
+            snap.forEach(d => {
+                cont.innerHTML += `<div class="admin-item"><div>📸 <strong>${d.data().titulo}</strong></div><button class="btn-danger" onclick="eliminarDoc('galeria_fotos', '${d.id}')">Eliminar</button></div>`;
+            });
+        }
+
+        async function cargarPeticionesAdmin() {
+            const cont = document.getElementById("listaPeticiones");
+            const snap = await getDocs(collection(db, "peticiones_oracion"));
+            cont.innerHTML = snap.empty ? "<p>No hay peticiones.</p>" : "";
+            document.getElementById("contadorPeticiones").innerText = `Total: ${snap.size}`;
+            snap.forEach(d => {
+                const data = d.data();
+                const estadoBadge = data.estado === "Atendido" ? `<span style="color:var(--success); font-weight:bold;">[Orado ✓]</span>` : `<span style="color:var(--warning); font-weight:bold;">[Pendiente]</span>`;
+                cont.innerHTML += `
+                    <div class="admin-item">
+                        <div><strong>De:</strong> ${data.nombre_solicitante} - ${data.motivo_oracion}<br>${estadoBadge}</div>
+                        <button class="btn-warning" onclick="marcarAtendido('${d.id}', '${data.estado}')">Marcar Orado</button>
+                        <button class="btn-danger" onclick="eliminarDoc('peticiones_oracion', '${d.id}')">Eliminar</button>
+                    </div>`;
+            });
+        }
+
+        window.eliminarDoc = async function(col, id) {
+            if (confirm("¿Estás seguro de eliminar este elemento?")) {
+                await deleteDoc(doc(db, col, id));
+                cargarTodoAdmin();
+            }
+        };
+
+        window.marcarAtendido = async function(id, estadoActual) {
+            const nuevoEstado = estadoActual === "Atendido" ? "Pendiente" : "Atendido";
+            await updateDoc(doc(db, "peticiones_oracion", id), { estado: nuevoEstado });
+            cargarPeticionesAdmin();
+        };
+
+        document.getElementById("formHorario").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "horarios_cultos"), { horarios: document.getElementById("nuevoHorario").value.trim() });
+            e.target.reset(); cargarHorariosAdmin();
+        });
+
+        document.getElementById("formEvento").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "publicaciones_eventos"), { 
+                titulo: document.getElementById("tituloEvento").value.trim(), 
+                descripcion: document.getElementById("descEvento").value.trim() 
+            });
+            e.target.reset(); cargarEventosAdmin();
+        });
+
+        document.getElementById("formLider").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "ministerios_lideres"), { 
+                nombre: document.getElementById("nombreLider").value.trim(), 
+                area: document.getElementById("areaLider").value.trim(),
+                fotoUrl: document.getElementById("fotoLider").value.trim()
+            });
+            e.target.reset(); cargarLideresAdmin();
+        });
+
+        document.getElementById("formGaleria").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "galeria_fotos"), {
+                titulo: document.getElementById("tituloFoto").value.trim(),
+                fotoUrl: document.getElementById("urlFoto").value.trim()
+            });
+            e.target.reset(); cargarGaleriaAdmin();
+            alert("¡Foto agregada a la galería con éxito!");
+        });
+    </script>
+</body>
+</html>
